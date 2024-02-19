@@ -1,6 +1,5 @@
-
 #include <stdint.h>
-#include <stdio.h>
+
 
 //Peripheral & bus address
 #define PERIPHERAL_BASE_ADDRESS 0x40000000U
@@ -62,16 +61,16 @@ int main(void)
 	//Colocarlo como pull up
 	//*ptr_gpioc_pupd |= (1<<1);
 
-	//uint8_t j=0; //contador
+	uint8_t j=0; //contador
 
 
 	while(1){
 		if(*ptr_gpioc_idr & (1<<8)  )//Activa el puerto PC8
 			{
 
-					*ptr_gpioc_odr &= ~(1<<9); //Se apaga el led en puerto PC9
+					*ptr_gpioc_odr &= ~(1<<9);
 						delay_ms(200);
-					*ptr_gpioc_odr	|= 1<<9;//Se encendiende el led
+					*ptr_gpioc_odr	|= 1<<9;
 						delay_ms(200);
 				}
 				else{
@@ -82,6 +81,12 @@ int main(void)
 
 				}
 
+		if(*ptr_gpioc_idr & (1<<7)  )//Activa el puerto PC8
+					{
+
+							j++; //aumenta el valor del contador
+							printf("Valor de j: %d\n", j); //Imprime en la terminal el valor del contador
+						}
 
 	}
 
@@ -92,12 +97,5 @@ void delay_ms(uint16_t n){
 			for (i=0; i<140; i++);
 
 	}
-
-
-
-
-
-
-
 
 
