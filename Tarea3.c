@@ -1,6 +1,6 @@
 
 #include <stdint.h>
-#include <stdio.h>
+
 
 //Peripheral & bus address
 #define PERIPHERAL_BASE_ADDRESS 0x40000000U
