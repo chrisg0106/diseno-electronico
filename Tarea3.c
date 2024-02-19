@@ -84,8 +84,8 @@ int main(void)
 		if(*ptr_gpioc_idr & (1<<7)  )//Activa el puerto PC8
 					{
 
-							j++;
-							printf("Valor de j: %d\n", j);
+							j++; //aumenta el valor del contador
+							printf("Valor de j: %d\n", j); //Imprime en la terminal el valor del contador
 						}
 
 	}
