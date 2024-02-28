@@ -1,4 +1,5 @@
 
+
 #include <stdint.h>
 
 // Definiciones de registros y direcciones
@@ -57,7 +58,7 @@ struct Time_t {
     uint8_t minuteUnit;
     uint8_t secondDecimal;
     uint8_t secondUnit;
-};
+}watch, alarmas[9];
 
 struct Time_t watch = {0}; // Inicializar todas las variables a 0
 
@@ -77,6 +78,22 @@ void delay_ms(uint16_t n);
 uint8_t decoder(uint8_t value_to_decode);
 void hour_format();
 
+
+struct Time_t alarmas[] = {
+    {0, 0, 1, 0, 0, 0}, //Colocamos alarmas a 12:10 horas
+    {0, 0, 1, 0, 0, 2},
+    {0, 0, 1, 0, 0, 4},
+    {0, 0, 1, 2, 0, 0},// Colocamos alarmas a 12:12 horas
+    {0, 0, 1, 2, 0, 2},
+    {0, 0, 1, 2, 0, 4},
+	{0, 0, 1, 5, 0, 0}, // Colocamos alarmas a 12:15 horas
+	{0, 0, 1, 5, 0, 2},
+       {0, 0, 1, 5, 0, 4}
+};
+
+
+const int NUM_ALARMAS = sizeof(alarmas) / sizeof(alarmas[0]);
+
 // Tabla de búsqueda para la función decoder
 const uint8_t decoder_table[] = {Zero, One,Two, Three, Four, Five, Six, Seven, Eight, Nine};
 
@@ -88,6 +105,9 @@ void set_time(uint8_t hourDecimal, uint8_t hourUnit, uint8_t minuteDecimal, uint
     watch.secondDecimal = secondDecimal;
     watch.secondUnit = secondUnit;
 }
+
+
+
 
 int main(void)
 {
@@ -137,12 +157,6 @@ int main(void)
     // Limpiar y configurar los modos de los pines del puerto A como salida
     GPIOA->MODER &= ~(0b11 << 12); // Limpiar los bits correspondientes
     GPIOA->MODER |= A_masks_output;
-
-
-
-    struct Time_t pulso_0_alarma = {0, 0, 1, 0, 0, 0};
-    struct Time_t pulso_2_alarma = {0, 0, 1, 0, 0, 2};
-    struct Time_t pulso_3_alarma = {0, 0, 1, 0, 0, 4};
 
 
     // funcion cambio de formato
@@ -214,194 +228,102 @@ int main(void)
 
 
         // Verificar si el botón está presionado para incrementar la hora de las alarmas
-        if ((GPIOC->IDR & (1 << 13)) == 0) // Suponiendo que el botón está conectado al pin PC13
-        {
-            // Incrementar las horas de las tres alarmas
-            pulso_0_alarma.hourUnit++;
-            pulso_2_alarma.hourUnit++;
-            pulso_3_alarma.hourUnit++;
-
-            // Verificar si se necesita llevar a cabo un carry en las horas de las alarmas
-            if (pulso_0_alarma.hourUnit == 10)
-            {
-                pulso_0_alarma.hourUnit = 0; // Reiniciar las unidades de hora a cero
-                pulso_0_alarma.hourDecimal++; // Incrementar las decenas de hora
-            }
-            if (pulso_2_alarma.hourUnit == 10)
-            {
-                pulso_2_alarma.hourUnit = 0; // Reiniciar las unidades de hora a cero
-                pulso_2_alarma.hourDecimal++; // Incrementar las decenas de hora
-            }
-            if (pulso_3_alarma.hourUnit == 10)
-            {
-                pulso_3_alarma.hourUnit = 0; // Reiniciar las unidades de hora a cero
-                pulso_3_alarma.hourDecimal++; // Incrementar las decenas de hora
-            }
-
-            // Verificar si se necesita llevar a cabo un carry en las decenas de hora
-            if (pulso_0_alarma.hourDecimal == 2)
-            {
-                pulso_0_alarma.hourDecimal = 0; // Reiniciar las decenas de hora a cero
-            }
-            if (pulso_2_alarma.hourDecimal == 2)
-            {
-                pulso_2_alarma.hourDecimal = 0; // Reiniciar las decenas de hora a cero
-            }
-            if (pulso_3_alarma.hourDecimal == 2)
-            {
-                pulso_3_alarma.hourDecimal = 0; // Reiniciar las decenas de hora a cero
-            }
-
-            // Retraso para evitar falsos contactos (debouncing)
-            delay_ms(100); // Ajusta este valor según sea necesario
-        }
+        if (!(GPIOC->IDR & (1 << 13))) { // Ajuste para incrementar la hora de las alarmas.
+                    for (int i = 0; i < NUM_ALARMAS; i++) {
+                        alarmas[i].hourUnit++;
+                        if (alarmas[i].hourUnit > 9) {
+                            alarmas[i].hourUnit = 0;
+                            alarmas[i].hourDecimal++;
+                            if (alarmas[i].hourDecimal >= 2 && alarmas[i].hourUnit >= 4) { // Corrección para formato de 24 horas.
+                                alarmas[i].hourDecimal = 0;
+                                alarmas[i].hourUnit = 0;
+                            }
+                        }
+                    }
+                    delay_ms(100); // Debounce delay.
+                }
 
 
         // Llamar a la función para mostrar la hora en el display
         hour_format();
 
+        for (int i = 0; i < NUM_ALARMAS; i++) {
+                    if (watch.hourDecimal == alarmas[i].hourDecimal && watch.hourUnit == alarmas[i].hourUnit &&
+                        watch.minuteDecimal == alarmas[i].minuteDecimal && watch.minuteUnit == alarmas[i].minuteUnit &&
+                        watch.secondDecimal == alarmas[i].secondDecimal && watch.secondUnit == alarmas[i].secondUnit) {
+                        GPIOA->ODR |= (1 << 6); // Encender LED para indicar alarma.
+                        break; // Salir del bucle una vez que se encuentra una alarma activa.
+                    } else {
+                        GPIOA->ODR &= ~(1 << 6); // Asegurar que el LED esté apagado si no hay alarma.
+                  }
+        	}
+    	}
+}
 
-//***************************************ALARMA**********************************************************************
-        uint8_t alarm_second0 = pulso_0_alarma.secondUnit;
-        uint8_t alarm_second2 = pulso_2_alarma.secondUnit;
-        uint8_t alarm_second4 = pulso_3_alarma.secondUnit;
+void activate_segment_and_digit(uint8_t segment, uint8_t digit) {
+    GPIOB->BSRR = 0xFFFF0000; // Limpiar todos los bits del puerto B
+    GPIOC->BSRR = 0xFFFF0000; // Limpiar todos los bits del puerto C
+    GPIOC->BSRR = 0X01 << segment; // Encender segmento
+    GPIOB->BSRR = decoder(digit); // Encender dígito
+}
 
-        if ((watch.hourDecimal == pulso_0_alarma.hourDecimal &&
-             watch.hourUnit == pulso_0_alarma.hourUnit &&
-             watch.minuteDecimal == pulso_0_alarma.minuteDecimal &&
-             watch.minuteUnit == pulso_0_alarma.minuteUnit &&
-             watch.secondDecimal == pulso_0_alarma.secondDecimal &&
-             watch.secondUnit == pulso_0_alarma.secondUnit && alarm_second0 == 0) ||
-            (watch.hourDecimal == pulso_2_alarma.hourDecimal &&
-             watch.hourUnit == pulso_2_alarma.hourUnit &&
-             watch.minuteDecimal == pulso_2_alarma.minuteDecimal &&
-             watch.minuteUnit == pulso_2_alarma.minuteUnit &&
-             watch.secondDecimal == pulso_2_alarma.secondDecimal &&
-             watch.secondUnit == pulso_2_alarma.secondUnit && alarm_second2 == 2) ||
-            (watch.hourDecimal == pulso_3_alarma.hourDecimal &&
-             watch.hourUnit == pulso_3_alarma.hourUnit &&
-             watch.minuteDecimal == pulso_3_alarma.minuteDecimal &&
-             watch.minuteUnit == pulso_3_alarma.minuteUnit &&
-             watch.secondDecimal == pulso_3_alarma.secondDecimal &&
-             watch.secondUnit == pulso_3_alarma.secondUnit && alarm_second4 == 4))
-        {
-            GPIOA->ODR |= (1 << 6); // Encender el LED
+
+void hour_format() {
+    static uint8_t segmentMap[] = {5, 6, 8, 9, 7, 4}; // Mapeo de segmentos a estados
+
+    if (myfsm >= 0 && myfsm < 6) { // Asegurar que myfsm esté dentro del rango
+        uint8_t digit = 0;
+        switch (myfsm) {
+            case 0: digit = watch.secondUnit; break;
+            case 1: digit = watch.secondDecimal; break;
+            case 2: digit = watch.minuteUnit; break;
+            case 3: digit = watch.minuteDecimal; break;
+            case 4: digit = watch.hourUnit % 10; break;
+            case 5: digit = watch.hourDecimal; break;
         }
-        else
-        {
-            GPIOA->ODR &= ~(1 << 6); // Apagar el LED si ninguna alarma coincide
-        }
 
+        activate_segment_and_digit(segmentMap[myfsm], digit);
+    }
 
+    myfsm = (myfsm + 1) % 6; // Circular a través de los estados
 
-
+    delay_ms(1); // Mantiene el retardo para temporización
+    // Incremento del tiempo (mantener la lógica original aquí)
+    inc_second++;
+    if (inc_second == 250) {
+        inc_second = 0;
+        // Asume que la lógica para incrementar la hora, minuto y segundo se mantiene sin cambios
+        increment_time(); // Función para incrementar el tiempo
     }
 }
 
-void hour_format()
-{
-    // Limpiar los puertos antes de encender los segmentos correspondientes y los dígitos
-    GPIOB->BSRR |= 0xFFFF0000; // Limpiar todos los bits del puerto B
-    GPIOC->BSRR |= 0xFFFF0000; // Limpiar todos los bits del puerto C
-
-    switch (myfsm)
-    {
-    case 0:
-        // Encender segmento correspondiente al dígito 7 en formato 24h
-        GPIOC->BSRR |= 0X01 << 5;
-        // Encender el dígito 7 en formato 24h
-        GPIOB->BSRR |= decoder(watch.secondUnit);
-        myfsm = 1; // Cambiar al siguiente estado
-        break;
-
-    case 1:
-        // Encender segmento correspondiente al dígito 3 en formato 24h
-        GPIOC->BSRR |= 0X01 << 6;
-        // Encender el dígito 3 en formato 24h
-        GPIOB->BSRR |= decoder(watch.secondDecimal);
-        myfsm++; // Avanzar al siguiente estado
-        break;
-
-    case 2:
-        // Encender segmento correspondiente al dígito X en formato 24h
-        GPIOC->BSRR |= 0X01 << 8;
-        // Encender el dígito X en formato 24h
-        GPIOB->BSRR |= decoder(watch.minuteUnit);
-        myfsm++; // Avanzar al siguiente estado
-        break;
-
-    case 3:
-        // Encender segmento correspondiente al dígito X en formato 24h
-        GPIOC->BSRR |= 0X01 << 9;
-        // Encender el dígito X en formato 24h
-        GPIOB->BSRR |= decoder(watch.minuteDecimal);
-        myfsm++; // Avanzar al siguiente estado
-        break;
-
-    case 4:
-        // Encender segmento correspondiente al dígito X en formato 24h
-        GPIOC->BSRR |= 0X01 << 7;
-        // Encender el dígito X en formato 24h
-        GPIOB->BSRR |= decoder(watch.hourUnit % 10);
-        myfsm++; // Avanzar al siguiente estado
-        break;
-
-    case 5:
-        // Encender segmento correspondiente al dígito X en formato 24h
-        GPIOC->BSRR |= 0X01 << 4;
-        // Encender el dígito X en formato 24h
-        GPIOB->BSRR |= decoder(watch.hourDecimal);
-        myfsm = 0; // Volver al estado inicial
-        break;
-
-    default:
-        myfsm = 0; // En caso de cualquier otro estado, volver al estado inicial
-        break;
-    }
-
-    delay_ms(1);
-    inc_second++;
-    if (inc_second == 100) {
-        inc_second = 0; // Reiniciar el contador de milisegundos
-        watch.secondUnit++; // Incrementar las unidades de segundo
-
-    if (watch.secondUnit == 10) {
-        watch.secondUnit = 0; // Reiniciar las unidades de segundo a cero
-        watch.secondDecimal++; // Incrementar las decenas de segundo
-
-            if (watch.secondDecimal == 6) {
-                watch.secondDecimal = 0; // Reiniciar las decenas de segundo a cero
-                watch.minuteUnit++; // Incrementar las unidades de minuto
-
-                if (watch.minuteUnit == 10) {
-                    watch.minuteUnit = 0; // Reiniciar las unidades de minuto a cero
-                    watch.minuteDecimal++; // Incrementar las decenas de minuto
-
-                    if (watch.minuteDecimal == 6) {
-                        watch.minuteDecimal = 0; // Reiniciar las decenas de minuto a cero
-                        watch.hourUnit++; // Incrementar las unidades de hora
-
-                        if (watch.hourUnit == 10) {
-                            watch.hourUnit = 0; // Reiniciar las unidades de hora a cero
-                            watch.hourDecimal++; // Incrementar las decenas de hora
-
-                            if (watch.hourDecimal == 2 && watch.hourUnit == 4) {
-                                // Si las horas llegan a 24 en formato de 24 horas, reiniciar a 00
-                                watch.hourDecimal = 0;
-                                watch.hourUnit = 0;
-                            } else if (watch.hourDecimal == 1 && watch.hourUnit == 3) {
-                                // Si las horas llegan a 13, ajustar a 01 en formato de 24 horas
-                                watch.hourDecimal = 0;
-                                watch.hourUnit = 1;
-                            }
+void increment_time() {
+    watch.secondUnit++;
+    if (watch.secondUnit >= 10) {
+        watch.secondUnit = 0;
+        watch.secondDecimal++;
+        if (watch.secondDecimal >= 6) {
+            watch.secondDecimal = 0;
+            watch.minuteUnit++;
+            if (watch.minuteUnit >= 10) {
+                watch.minuteUnit = 0;
+                watch.minuteDecimal++;
+                if (watch.minuteDecimal >= 6) {
+                    watch.minuteDecimal = 0;
+                    watch.hourUnit++;
+                    if (watch.hourUnit >= 10 || (watch.hourDecimal == 2 && watch.hourUnit >= 4)) {
+                        watch.hourUnit = 0;
+                        watch.hourDecimal++;
+                        if (watch.hourDecimal >= 3) {
+                            watch.hourDecimal = 0; // Reiniciar a 00 después de 24 horas
                         }
                     }
                 }
             }
         }
     }
-
 }
+
 
 void delay_ms(uint16_t n)
 {
