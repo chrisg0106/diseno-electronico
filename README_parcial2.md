@@ -58,3 +58,25 @@ Displays de 7 Segmentos: 4
 
 Conclusiones
 Este proyecto proporciona una solución práctica y funcional para realizar operaciones matemáticas básicas utilizando un microcontrolador STM32 y componentes electrónicos simples. La calculadora implementada es fácil de usar y ofrece una interfaz intuitiva para usuarios de todas las edades.
+
+
+
+
+Ejemplo de funcionamiento de una multiplicación:
+
+1. Se presiona el número 20
+![image](https://github.com/chrisg0106/diseno-electronico/assets/68700454/fc7f0b0b-f14d-4fa2-adfd-4cc8d2e7f41c)
+
+2. Se presiona la "D" para almacenarlo
+
+![image](https://github.com/chrisg0106/diseno-electronico/assets/68700454/ed53fab5-4908-4037-b300-aefd3c82b054)
+
+
+3.  Se presiona el número por el cual quiero multiplicar el 20, en este caso el 25
+![image](https://github.com/chrisg0106/diseno-electronico/assets/68700454/b82cd50b-23e9-40c4-93b5-d803d88eb0c5)
+
+4.  Se presiona la tecla "C" para multiplicar dandonos el resultado esperado 500
+![image](https://github.com/chrisg0106/diseno-electronico/assets/68700454/3b7bce5d-75f6-406b-b5ca-5f89bc8ea83a)
+
+
+
