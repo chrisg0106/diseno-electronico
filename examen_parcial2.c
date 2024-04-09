@@ -1,4 +1,3 @@
-
 /*
  * Finalparcial2.c
  *
@@ -184,7 +183,9 @@ int main(void)
                 {
 
                     uint8_t kn = c * 4 + row;
-                    // Manejo de las teclas presionadas
+                    // Manejo de las teclas presionadasz
+
+                    //funcion para almacenar los valores
                     if (kn == KD) //Tecla D presionada
 
                     {
@@ -198,12 +199,13 @@ int main(void)
                         int cv = gnfk(tdd);//Centena
 
 
-                        sv = uv + (dv * 10) + (cv * 100); // Suma los valores de las unidades,decenas y sentenas
+                        sv = uv + (dv * 10) + (cv * 100); // Suma los valores de las unidades,decenas y centenas
 
                         storedvalue = (uint8_t)(storedvalue + sv); //almacena los valores
 
                         fdd = sdd = tdd = frdd = 0xff; //limpia los displays
                     }
+                    //Funcion suma cuando se presiona A luego de almacenar los datos
                     else if (kn == KA)
                     {
                         if (storedvalue != 0)
@@ -220,13 +222,13 @@ int main(void)
 
                             storedvalue = (uint8_t)(storedvalue + sv);
 
-                            uv = storedvalue % 10;
-                            dv = ((storedvalue - uv) % 100) / 10;
-                            cv = ((storedvalue - dv - uv) % 1000) / 100;
+                            uv = storedvalue % 10;                   //Valor en unidades
+                            dv = ((storedvalue - uv) % 100) / 10; //Valor en decenas
+                            cv = ((storedvalue - dv - uv) % 1000) / 100; //centenas
                             //Despliega los valores luego de sumarlos
-                            fdd = gkfn(uv);
-                            sdd = gkfn(dv);
-                            tdd = gkfn(cv);
+                            fdd = gkfn(uv); //Despliega en el primer digito del display el valor de la unidad
+                            sdd = gkfn(dv);//Despliega en el primer digito del display el valor de la decena
+                            tdd = gkfn(cv);//Despliega en el primer digito del display el valor de la decena
 
                             storedvalue = 0;
 
@@ -250,13 +252,13 @@ int main(void)
 
                             storedvalue = (uint8_t)(storedvalue - sv); //Luego de almacenarlo resta los datos almacenados con los nuevos
 
-                            uv = storedvalue % 10;
-                            dv = ((storedvalue - uv) % 100) / 10;
-                            cv = ((storedvalue - dv - uv) % 1000) / 100;
-
-                            fdd = gkfn(uv);
-                            sdd = gkfn(dv);
-                            tdd = gkfn(cv);
+                            uv = storedvalue % 10;                   //Valor en unidades
+                            dv = ((storedvalue - uv) % 100) / 10; //Valor en decenas
+						   cv = ((storedvalue - dv - uv) % 1000) / 100; //centenas
+						   //Despliega los valores luego de sumarlos
+						   fdd = gkfn(uv); //Despliega en el primer digito del display el valor de la unidad
+						   sdd = gkfn(dv);//Despliega en el primer digito del display el valor de la decena
+						   tdd = gkfn(cv);//Despliega en el primer digito del display el valor de la centena
 
                             storedvalue = 0;
 
@@ -268,27 +270,28 @@ int main(void)
                     {
                         if (storedvalue != 0)
                         {
-                            int pv = 0; //Producto
+                            int pv = 0; //Producto de la multiplicación
 
                             int uv = gnfk(fdd);
                             int dv = gnfk(sdd);
                             int cv = gnfk(tdd);
 
-                            int mv = gnfk(frdd); // Millar
+                            int mv = gnfk(frdd); // Miles
 
                             int iv = uv + (dv * 10) + (cv * 100) + (mv * 1000);
 
                             pv = storedvalue * iv; // Genera la multiplicacion de los valores
                             //Se implementa el uso de mas valores en los displays para multiplicaciones de 2 x 2 digitos
-                            uv = pv % 10;
-                            dv = (pv / 10) % 10;
-                            cv = (pv / 100) % 10;
-                            mv = (pv / 1000) % 10;
+                            uv = pv % 10; //valor del producto en unidades
+                            dv = (pv / 10) % 10; //valor del producto en decenas
+                            cv = (pv / 100) % 10;//valor del producto en centenas
+                            mv = (pv / 1000) % 10;//valor del producto en miles
 
-                            fdd = gkfn(uv);
-                            sdd = gkfn(dv);
-                            tdd = gkfn(cv);
-                            frdd = gkfn(mv);
+                            fdd = gkfn(uv); //Despliega en el primer digito del display el valor de la unidad
+						   sdd = gkfn(dv);//Despliega en el primer digito del display el valor de la decena
+						   tdd = gkfn(cv);//Despliega en el primer digito del display el valor de la centena
+
+                            frdd = gkfn(mv);//Despliega en el primer digito del display el valor de los miles
 
                             storedvalue = 0;
                         }
@@ -325,7 +328,7 @@ int main(void)
 
                     else
 
-                    { //Desplaza los valores
+                    { //Desplaza los valores si no se tiene ningun operador funcionando
                         frdd = tdd;
 
                         tdd = sdd;
