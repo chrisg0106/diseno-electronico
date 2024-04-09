@@ -5,6 +5,13 @@
  *      Author: chris
  */
 
+/*
+ * Finalparcial2.c
+ *
+ *  Created on: Mar 30, 2024
+ *      Author: chris
+ */
+
 
 #include <stdint.h>
 
@@ -235,7 +242,7 @@ int main(void)
                         }
                     }
 
-                    else if (kn == KB)
+                    else if (kn == KB) //Funcion de resta al presionar B 
                     {
                         if (storedvalue != 0)
                         {
@@ -266,7 +273,7 @@ int main(void)
                     }
 
 
-                    else if (kn == KC)
+                    else if (kn == KC)//Funcion de multiplicación
                     {
                         if (storedvalue != 0)
                         {
